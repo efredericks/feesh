@@ -1,0 +1,86 @@
+<html>
+
+<head>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.js"></script>
+  <script type="text/javascript" src="feesh.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
+
+    *,
+    body {
+      margin: 0px;
+      padding: 0px;
+      /* font-family: 'Ubuntu', sans-serif; */
+      font-family: 'Permanent Marker', cursive;
+      color: #fff;
+      /* background: #000; */
+      overflow: hidden;
+    }
+
+    #canvas-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 5em;
+      text-shadow: 2px 2px #ff00ff;
+    }
+    h2 {
+      text-align: center;
+      font-size: 1.2em;
+      text-shadow: 2px 2px #ff00ff;
+    }
+
+    h2 a {
+      color:aqua;
+      text-decoration: none;
+    }
+    h2 a:hover {
+      color: #76dd2c;
+    }
+
+    #controls {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 1.2em;
+      text-shadow: 2px 2px #ff00ff;
+    }
+
+    canvas {
+      width: 640px;
+      border-radius: 25px;
+    }
+
+    /* Animated background: https://codepen.io/katmai7/pen/ACiqL */
+    body {
+      background: linear-gradient(to right, #1e5799 0%, #2ce0bf 19%, #76dd2c 40%, #dba62b 60%, #e02cbf 83%, #1e5799 100%);
+      background-size: 10000px 100%;
+      animation: bg 15s linear infinite;
+    }
+
+    @keyframes bg {
+      0% {
+        background-position-x: 0;
+      }
+
+      100% {
+        background-position-x: 10000px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>./feesh/mape-k</h1>
+  <div id="canvas-container"></div>
+  <div id="controls"></div>
+  <h2><a href="http://efredericks.net" target="_blank">erik fredericks</a> // 2021 // made with <a href="https://p5js.org/" target="_blank">p5.js</a></h2>
+</body>
+
+</html>
