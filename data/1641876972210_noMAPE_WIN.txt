@@ -1,0 +1,2 @@
+4239:gameOver:4:1036.1224456504638:4239
+TotalNumberOfAdaptations:0

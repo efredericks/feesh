@@ -1,0 +1,2 @@
+945:gameOver:3:15:945
+TotalNumberOfAdaptations:0
