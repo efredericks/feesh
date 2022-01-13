@@ -1,2 +1,0 @@
-1023:gameOver:3:59.00000000000002:1023
-TotalNumberOfAdaptations:0

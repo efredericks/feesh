@@ -1,2 +1,0 @@
-867:gameOver:3:15:867
-TotalNumberOfAdaptations:0
