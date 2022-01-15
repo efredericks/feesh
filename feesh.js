@@ -117,10 +117,12 @@ class Entity {
         this.growTimer--;
       } else if (this.growTimer > 0 && !this.growDirection) {
         this.diameter -= this.growTarget / 10;
+        this.diameter = max(this.diameter, 40);
         this.growTimer--;
       } else {
         this.growTimer = 0;
         this.growTarget = 0;
+        this.growDirection = true;
       }
 
       if (this.shieldActive > 0) {
@@ -255,12 +257,12 @@ function MAPEcycle() {
 
     player.growTimer = 30;
     player.growDirection = false;
-    player.growTarget = player.diameter / 8;
+    player.growTarget = player.diameter / 2;
 
 
 
     // player.growTarget = player.diameter / 2;
-    debugLog.push(`${ticks}:PlayerDiameter decreased:${player.diameter / 8}`);
+    debugLog.push(`${ticks}:PlayerDiameter decreased:${player.diameter / 2}`);
     numberOfAdaptations++;
   }
 
@@ -276,7 +278,7 @@ function MAPEcycle() {
 
       if (entities.length > 10) {
         entities.splice(0, entities.length - 10);
-        debugLog.push(`${ticks}:FPS violation:Enemies decreased:${entities.length}`);
+        debugLog.push(`${ticks}:FPS violation:Enemies decreased:${entities.length}:${fr}`);
       }
 
     } else {
@@ -287,15 +289,15 @@ function MAPEcycle() {
       let toRemove = int(random(1, min(maxEnemiesToRemove, entities.length)));
       if (entities.length > toRemove) {
         entities.splice(entities.length - 1, toRemove);
-        debugLog.push(`${ticks}:FPS exceeded:Enemies decreased:${entities.length}`);
+        debugLog.push(`${ticks}:FPS exceeded:Enemies decreased:${entities.length}:${fr}`);
         numberOfAdaptations++;
       }
     }
 
-    if (bouncy) {
+    if (bouncy && fr < fps_bottom_threshold + 5) {
       bouncy = false;
       // bouncyBox.attribute('checked') = false; --> can't seem to update the value in real time and unsure how to set an id to reference via DOM?
-      debugLog.push(`${ticks}:FPS exceeded:Debounced`)
+      debugLog.push(`${ticks}:FPS exceeded:Debounced:${fr}`)
       numberOfAdaptations++;
     }
 
@@ -314,6 +316,7 @@ function MAPEcycle() {
     utilF = 1.0 - (Math.abs(player.diameter - width / 2) / (width / 2));
 
   // draw debuglog
+  /*
   let yoff = 10;
   textSize(12);
   fill(color(255))
@@ -326,6 +329,7 @@ function MAPEcycle() {
   for (let i = start; i < end; i++) {
     text(debugLog[i], 40, yoff * (i - start) + 20);
   }
+  */
 
   utilLog.push({
     'tick': ticks,
@@ -352,6 +356,15 @@ function bouncyBoxChanged() {
     bouncy = true;
   } else {
     bouncy = false;
+  }
+}
+
+// enable/disable logging
+function logBoxChanged() {
+  if (this.checked()) {
+    logData = true;
+  } else {
+    logData = false;
   }
 }
 
@@ -386,6 +399,9 @@ let eg;
 
 let bouncyBox;
 let bouncy;
+
+let logData;
+let logBox;
 
 let testsBox;
 let tests;
@@ -466,6 +482,11 @@ function setup() {
   bouncyBox.parent('controls');
   bouncyBox.changed(bouncyBoxChanged);
   bouncy = true;
+
+  logBox = createCheckbox("Log data?", true);
+  logBox.parent('controls');
+  logBox.changed(logBoxChanged);
+  logData = true;
 
   setupGame();
 
@@ -648,28 +669,35 @@ function keyPressed() {
         dumpLog();
       }
       setupGame();
+    } else if (key === "p" && STATE == STATES.running) {
+      player.growTimer = 10;
+      player.growTarget = player.diameter + 10;
+      player.growDirection = true;
     }
+
   }
 }
 
 function dumpLog() {
-  for (let i = 0; i < utilLog.length; i++) {
-    debugLog.push(JSON.stringify(utilLog[i]));
+  if (logData) {
+    for (let i = 0; i < utilLog.length; i++) {
+      debugLog.push(JSON.stringify(utilLog[i]));
+    }
+
+    debugLog.push(`${ticks}:gameOver:${STATE}:${player.diameter}:${player.score}`)
+    debugLog.push(`TotalNumberOfAdaptations:${numberOfAdaptations}`);
+    debugLog.push(`GoalBViolated:${utilBViolated}`);
+
+
+
+    let fname = Date.now();
+
+    if (mapeEnabled) fname += "_MAPE";
+    else fname += "_noMAPE";
+
+
+    if (STATE === STATES.gameOver) fname += "_LOSS.txt";
+    else fname += "_WIN.txt";
+    save(debugLog, fname);
   }
-
-  debugLog.push(`${ticks}:gameOver:${STATE}:${player.diameter}:${player.score}`)
-  debugLog.push(`TotalNumberOfAdaptations:${numberOfAdaptations}`);
-  debugLog.push(`GoalBViolated:${utilBViolated}`);
-
-
-
-  let fname = Date.now();
-
-  if (mapeEnabled) fname += "_MAPE";
-  else fname += "_noMAPE";
-
-
-  if (STATE === STATES.gameOver) fname += "_LOSS.txt";
-  else fname += "_WIN.txt";
-  save(debugLog, fname);
 }
