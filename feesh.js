@@ -190,6 +190,8 @@ class Entity {
   * Execute:
     - scale blob sizes/velocities
     - write changes to debug log
+
+    -- only *adapt* if mape is enabled, but still log for data parsing
 */
 let utilBViolated = false;
 function MAPEcycle() {
@@ -210,12 +212,13 @@ function MAPEcycle() {
 
   let numEntitiesPre = entities.length;
 
-  // randomly add an enemy
+  // randomly add an enemy - regardless of MAPE
   if (random() > 0.98) {
     if (entities.length < maxEnemies) {
       entities.push(new Entity(startingVelocity, startingDiameter));
       debugLog.push(`${ticks}:Random enemy added:${entities.length}`);
-      numberOfAdaptations++;
+      if (mapeEnabled)
+        numberOfAdaptations++;
     } else {
       debugLog.push(`${ticks}:Random enemy add failed - max capacity:${entities.length}`);
     }
@@ -224,19 +227,21 @@ function MAPEcycle() {
   let score = int(player.diameter);
 
   // Goal E/H
-  let scoreCheck = int(score / knob_threshold);
-  if (scoreCheck > lastThreshold) {
-    lastThreshold = scoreCheck;
-    debugLog.push(`${ticks}:New threshold: ${lastThreshold}`);
+  if (mapeEnabled) {
+    let scoreCheck = int(score / knob_threshold);
+    if (scoreCheck > lastThreshold) {
+      lastThreshold = scoreCheck;
+      debugLog.push(`${ticks}:New threshold: ${lastThreshold}`);
 
-    if (entities.length < maxEnemies) {
-      while (entities.length < ((lastThreshold + 1) * numEntities)) { // scale # of blobs based on threshold?
-        entities.push(new Entity(startingVelocity, startingDiameter));
+      if (entities.length < maxEnemies) {
+        while (entities.length < ((lastThreshold + 1) * numEntities)) { // scale # of blobs based on threshold?
+          entities.push(new Entity(startingVelocity, startingDiameter));
+        }
+        debugLog.push(`${ticks}:Enemies increased:${entities.length}`);
+        numberOfAdaptations++;
+      } else {
+        debugLog.push(`${ticks}:Score check enemy add failed - max capacity:${entities.length}`);
       }
-      debugLog.push(`${ticks}:Enemies increased:${entities.length}`);
-      numberOfAdaptations++;
-    } else {
-      debugLog.push(`${ticks}:Score check enemy add failed - max capacity:${entities.length}`);
     }
   }
 
@@ -251,19 +256,19 @@ function MAPEcycle() {
   }
 
   // Goal F
-  if (player.diameter > width / 2 && player.growTimer == 0) {
-    // player.growTimer = 10;
-    // player.diameter /= 8;
+  if (mapeEnabled) {
+    if (player.diameter > width / 2 && player.growTimer == 0) {
+      // player.growTimer = 10;
+      // player.diameter /= 8;
 
-    player.growTimer = 30;
-    player.growDirection = false;
-    player.growTarget = player.diameter / 2;
+      player.growTimer = 30;
+      player.growDirection = false;
+      player.growTarget = player.diameter / 2;
 
-
-
-    // player.growTarget = player.diameter / 2;
-    debugLog.push(`${ticks}:PlayerDiameter decreased:${player.diameter / 2}`);
-    numberOfAdaptations++;
+      // player.growTarget = player.diameter / 2;
+      debugLog.push(`${ticks}:PlayerDiameter decreased:${player.diameter / 2}`);
+      numberOfAdaptations++;
+    }
   }
 
   // Goal B/D
@@ -276,7 +281,7 @@ function MAPEcycle() {
       utilBViolated = true; // Goal B violated - can't go back!
       // maxEnemiesToRemove = 30;
 
-      if (entities.length > 10) {
+      if (entities.length > 10 && mapeEnabled) {
         entities.splice(0, entities.length - 10);
         debugLog.push(`${ticks}:FPS violation:Enemies decreased:${entities.length}:${fr}`);
       }
@@ -285,16 +290,18 @@ function MAPEcycle() {
       utilD = 1.0 - (Math.abs(fr - 30) / (30.0 - 20.0));
 
       // remove enemies based on current FPS and length of enemy list
-      let maxEnemiesToRemove = 10;
-      let toRemove = int(random(1, min(maxEnemiesToRemove, entities.length)));
-      if (entities.length > toRemove) {
-        entities.splice(entities.length - 1, toRemove);
-        debugLog.push(`${ticks}:FPS exceeded:Enemies decreased:${entities.length}:${fr}`);
-        numberOfAdaptations++;
+      if (mapeEnabled) {
+        let maxEnemiesToRemove = 10;
+        let toRemove = int(random(1, min(maxEnemiesToRemove, entities.length)));
+        if (entities.length > toRemove) {
+          entities.splice(entities.length - 1, toRemove);
+          debugLog.push(`${ticks}:FPS exceeded:Enemies decreased:${entities.length}:${fr}`);
+          numberOfAdaptations++;
+        }
       }
     }
 
-    if (bouncy && fr < fps_bottom_threshold + 5) {
+    if (bouncy && mapeEnabled && fr < fps_bottom_threshold + 5) {
       bouncy = false;
       // bouncyBox.attribute('checked') = false; --> can't seem to update the value in real time and unsure how to set an id to reference via DOM?
       debugLog.push(`${ticks}:FPS exceeded:Debounced:${fr}`)
@@ -604,19 +611,7 @@ function draw() {
       }
 
       // MAPE
-      if (mapeEnabled)
-        MAPEcycle();
-      else {
-        if (random() > 0.99) { // add enemies other wise it takes too long (decoupled from MAPE)
-          if (entities.length < maxEnemies) {
-            entities.push(new Entity(startingVelocity, startingDiameter));
-            debugLog.push(`${ticks}:Random enemy added:${entities.length}`);
-            numberOfAdaptations++;
-          } else {
-            debugLog.push(`${ticks}:Random enemy add failed - max capacity:${entities.length}`);
-          }
-        }
-      }
+      MAPEcycle();
     }
 
     // draw entities
