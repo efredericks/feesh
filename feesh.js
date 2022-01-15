@@ -665,7 +665,7 @@ function keyPressed() {
       save(mainCanvas, Date.now() + "_screenshot.png");
     } else if (key === "r" || key === "R") {
       if (key === "R") {
-        debugLog("keypress event:player aborted game (R)");
+        debugLog.push("keypress event:player aborted game (R)");
         dumpLog();
       }
       setupGame();
