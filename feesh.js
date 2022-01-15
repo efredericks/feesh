@@ -420,7 +420,7 @@ let STATES = {
   win: 4,
 };
 
-let mapeEnabled = true;
+let mapeEnabled = false;
 
 // re-initialize everything as needed
 function setupGame() {
@@ -606,6 +606,17 @@ function draw() {
       // MAPE
       if (mapeEnabled)
         MAPEcycle();
+      else {
+        if (random() > 0.99) { // add enemies other wise it takes too long (decoupled from MAPE)
+          if (entities.length < maxEnemies) {
+            entities.push(new Entity(startingVelocity, startingDiameter));
+            debugLog.push(`${ticks}:Random enemy added:${entities.length}`);
+            numberOfAdaptations++;
+          } else {
+            debugLog.push(`${ticks}:Random enemy add failed - max capacity:${entities.length}`);
+          }
+        }
+      }
     }
 
     // draw entities
