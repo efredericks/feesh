@@ -1,4 +1,6 @@
 import os
+import seaborn as sns
+import pandas as pd
 
 mapeAdapts = []
 nomapeAdapts = []
@@ -49,3 +51,11 @@ print(mapeTimes)
 print(nomapeTimes)
 print(mapeAdapts)
 print(nomapeAdapts)
+
+pdt = pd.DataFrame([mapeTimes, nomapeTimes])
+pdt = pdt.transpose()
+pdt.columns = ['MAPE-K', 'Normal']
+print(pdt.head())
+b = sns.boxplot(data=pdt)#, x="Experiment", y="Execution Time")
+b = b.get_figure()
+b.savefig("time-plot.png")

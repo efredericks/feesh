@@ -214,147 +214,155 @@ function MAPEcycle() {
 
   // randomly add an enemy - regardless of MAPE
   if (random() > 0.98) {
-    if (entities.length < maxEnemies) {
+    if (mapeEnabled) {
+      if (entities.length < maxEnemies) {
+        entities.push(new Entity(startingVelocity, startingDiameter));
+        debugLog.push(`${ticks}:Random enemy added:${entities.length}`);
+        if (mapeEnabled)
+          numberOfAdaptations++;
+      } else {
+        debugLog.push(`${ticks}:Random enemy add failed - max capacity:${entities.length}`);
+      }
+    } else {
       entities.push(new Entity(startingVelocity, startingDiameter));
       debugLog.push(`${ticks}:Random enemy added:${entities.length}`);
-      if (mapeEnabled)
-        numberOfAdaptations++;
-    } else {
-      debugLog.push(`${ticks}:Random enemy add failed - max capacity:${entities.length}`);
     }
   }
+// }
 
-  let score = int(player.diameter);
+let score = int(player.diameter);
 
-  // Goal E/H
-  if (mapeEnabled) {
-    let scoreCheck = int(score / knob_threshold);
-    if (scoreCheck > lastThreshold) {
-      lastThreshold = scoreCheck;
-      debugLog.push(`${ticks}:New threshold: ${lastThreshold}`);
+// Goal E/H
+// if (mapeEnabled) {
+//   let scoreCheck = int(score / knob_threshold);
+//   if (scoreCheck > lastThreshold) {
+//     lastThreshold = scoreCheck;
+//     debugLog.push(`${ticks}:New threshold: ${lastThreshold}`);
 
-      if (entities.length < maxEnemies) {
-        while (entities.length < ((lastThreshold + 1) * numEntities)) { // scale # of blobs based on threshold?
-          entities.push(new Entity(startingVelocity, startingDiameter));
-        }
-        debugLog.push(`${ticks}:Enemies increased:${entities.length}`);
-        numberOfAdaptations++;
-      } else {
-        debugLog.push(`${ticks}:Score check enemy add failed - max capacity:${entities.length}`);
-      }
-    }
+//     if (entities.length < maxEnemies) {
+//       for (let k = 0; k < maxEnemies/2; k++)
+//         entities.push(new Entity(startingVelocity, startingDiameter));
+//       // while (entities.length < ((lastThreshold + 1) * numEntities)) { // scale # of blobs based on threshold?
+//       //   entities.push(new Entity(startingVelocity, startingDiameter));
+//       // }
+//       debugLog.push(`${ticks}:Enemies increased:${entities.length}`);
+//       numberOfAdaptations++;
+//     } else {
+//       debugLog.push(`${ticks}:Score check enemy add failed - max capacity:${entities.length}`);
+//     }
+//   }
+// }
+
+// goal E
+if (entities.length >= maxEnemies) {
+  debugLog.push(`${ticks}:Violation:Too many enemies:${entities.length}`);
+  if (entities.length < maxEnemies * 2) utilE = 0.7;
+  else if (entities.length < maxEnemies * 4) utilE = 0.4;
+  else utilE = 0.0;
+} else {
+  utilE = 1.0;
+}
+
+// Goal F
+if (mapeEnabled) {
+  if (player.diameter > width / 2 && player.growTimer == 0) {
+    // player.growTimer = 10;
+    // player.diameter /= 8;
+
+    player.growTimer = 30;
+    player.growDirection = false;
+    player.growTarget = player.diameter / 2;
+
+    // player.growTarget = player.diameter / 2;
+    debugLog.push(`${ticks}:PlayerDiameter decreased:${player.diameter / 2}`);
+    numberOfAdaptations++;
   }
+}
 
-  // goal E
-  if (entities.length >= maxEnemies) {
-    debugLog.push(`${ticks}:Violation:Too many enemies:${entities.length}`);
-    if (entities.length < maxEnemies * 2) utilE = 0.7;
-    else if (entities.length < maxEnemies * 4) utilE = 0.4;
-    else utilE = 0.0;
-  } else {
-    utilE = 1.0;
-  }
+// Goal B/D
+let fr = frameRate();
+if (fr < fps_threshold) {
 
-  // Goal F
-  if (mapeEnabled) {
-    if (player.diameter > width / 2 && player.growTimer == 0) {
-      // player.growTimer = 10;
-      // player.diameter /= 8;
+  if (fr < fps_bottom_threshold) {
+    utilB = 0.0;
+    utilD = 0.0;
+    utilBViolated = true; // Goal B violated - can't go back!
+    // maxEnemiesToRemove = 30;
 
-      player.growTimer = 30;
-      player.growDirection = false;
-      player.growTarget = player.diameter / 2;
-
-      // player.growTarget = player.diameter / 2;
-      debugLog.push(`${ticks}:PlayerDiameter decreased:${player.diameter / 2}`);
-      numberOfAdaptations++;
-    }
-  }
-
-  // Goal B/D
-  let fr = frameRate();
-  if (fr < fps_threshold) {
-
-    if (fr < fps_bottom_threshold) {
-      utilB = 0.0;
-      utilD = 0.0;
-      utilBViolated = true; // Goal B violated - can't go back!
-      // maxEnemiesToRemove = 30;
-
-      if (entities.length > 10 && mapeEnabled) {
-        entities.splice(0, entities.length - 10);
-        debugLog.push(`${ticks}:FPS violation:Enemies decreased:${entities.length}:${fr}`);
-      }
-
-    } else {
-      utilD = 1.0 - (Math.abs(fr - 30) / (30.0 - 20.0));
-
-      // remove enemies based on current FPS and length of enemy list
-      if (mapeEnabled) {
-        let maxEnemiesToRemove = 10;
-        let toRemove = int(random(1, min(maxEnemiesToRemove, entities.length)));
-        if (entities.length > toRemove) {
-          entities.splice(entities.length - 1, toRemove);
-          debugLog.push(`${ticks}:FPS exceeded:Enemies decreased:${entities.length}:${fr}`);
-          numberOfAdaptations++;
-        }
-      }
-    }
-
-    if (bouncy && mapeEnabled && fr < fps_bottom_threshold + 5) {
-      bouncy = false;
-      // bouncyBox.attribute('checked') = false; --> can't seem to update the value in real time and unsure how to set an id to reference via DOM?
-      debugLog.push(`${ticks}:FPS exceeded:Debounced:${fr}`)
-      numberOfAdaptations++;
+    if (entities.length > 10 && mapeEnabled) {
+      entities.splice(0, entities.length - 10);
+      debugLog.push(`${ticks}:FPS violation:Enemies decreased:${entities.length}:${fr}`);
     }
 
   } else {
-    utilD = 1.0;
-    // if (!bouncy) {
-    //   debugLog.push("Rebounced")
-    //   bouncy = true;
-    // }
+    utilD = 1.0 - (Math.abs(fr - 30) / (30.0 - 20.0));
+
+    // remove enemies based on current FPS and length of enemy list
+    if (mapeEnabled) {
+      let maxEnemiesToRemove = 10;
+      let toRemove = int(random(1, min(maxEnemiesToRemove, entities.length)));
+      if (entities.length > toRemove) {
+        entities.splice(entities.length - 1, toRemove);
+        debugLog.push(`${ticks}:FPS exceeded:Enemies decreased:${entities.length}:${fr}`);
+        numberOfAdaptations++;
+      }
+    }
   }
 
-  // goal F
-  if (player.diameter >= width) utilF = 0.0;
-  else if (player.diameter < width / 2) utilF = 1.0;
-  else
-    utilF = 1.0 - (Math.abs(player.diameter - width / 2) / (width / 2));
-
-  // draw debuglog
-  /*
-  let yoff = 10;
-  textSize(12);
-  fill(color(255))
-  textAlign(LEFT);
-
-  let start = 0;
-  let end = debugLog.length;
-  if (end > 20)
-    start = end - 20;
-  for (let i = start; i < end; i++) {
-    text(debugLog[i], 40, yoff * (i - start) + 20);
+  if (bouncy && mapeEnabled && fr < fps_bottom_threshold + 5) {
+    bouncy = false;
+    // bouncyBox.attribute('checked') = false; --> can't seem to update the value in real time and unsure how to set an id to reference via DOM?
+    debugLog.push(`${ticks}:FPS exceeded:Debounced:${fr}`)
+    numberOfAdaptations++;
   }
-  */
 
-  utilLog.push({
-    'tick': ticks,
-    'A': utilA,
-    'B': utilB,
-    'C': utilC,
-    'D': utilD,
-    'E': utilE,
-    'F': utilF,
-    'G': utilG,
-    'H': utilH,
-    'I': utilI,
-    'J': utilJ,
-    'frameRate': fr,
-    'numEntitiesPreAdapt': numEntitiesPre,
-    'numEntitiesPostAdapt': entities.length,
-    'intDiameter': score,
-  });
+} else {
+  utilD = 1.0;
+  // if (!bouncy) {
+  //   debugLog.push("Rebounced")
+  //   bouncy = true;
+  // }
+}
+
+// goal F
+if (player.diameter >= width) utilF = 0.0;
+else if (player.diameter < width / 2) utilF = 1.0;
+else
+  utilF = 1.0 - (Math.abs(player.diameter - width / 2) / (width / 2));
+
+// draw debuglog
+/*
+let yoff = 10;
+textSize(12);
+fill(color(255))
+textAlign(LEFT);
+
+let start = 0;
+let end = debugLog.length;
+if (end > 20)
+  start = end - 20;
+for (let i = start; i < end; i++) {
+  text(debugLog[i], 40, yoff * (i - start) + 20);
+}
+*/
+
+utilLog.push({
+  'tick': ticks,
+  'A': utilA,
+  'B': utilB,
+  'C': utilC,
+  'D': utilD,
+  'E': utilE,
+  'F': utilF,
+  'G': utilG,
+  'H': utilH,
+  'I': utilI,
+  'J': utilJ,
+  'frameRate': fr,
+  'numEntitiesPreAdapt': numEntitiesPre,
+  'numEntitiesPostAdapt': entities.length,
+  'intDiameter': score,
+});
 }
 
 // enable/disable entity bouncing
@@ -372,6 +380,18 @@ function logBoxChanged() {
     logData = true;
   } else {
     logData = false;
+  }
+}
+
+// enable/disable mape
+function mapeBoxChanged() {
+  if (STATE == STATES.running)
+    debugLog.push("ERROR - MAPE SWITCHED MID-RUN");
+
+  if (this.checked()) {
+    mapeEnabled = true;
+  } else {
+    mapeEnabled = false;
   }
 }
 
@@ -409,6 +429,7 @@ let bouncy;
 
 let logData;
 let logBox;
+let mapeBox;
 
 let testsBox;
 let tests;
@@ -427,7 +448,7 @@ let STATES = {
   win: 4,
 };
 
-let mapeEnabled = false;
+let mapeEnabled = true;//false;
 
 // re-initialize everything as needed
 function setupGame() {
@@ -494,6 +515,11 @@ function setup() {
   logBox.parent('controls');
   logBox.changed(logBoxChanged);
   logData = true;
+
+  mapeBox = createCheckbox("MAPE enabled? (only update before game start)", true);
+  mapeBox.parent('controls');
+  mapeBox.changed(mapeBoxChanged);
+  mapeEnabled = true;
 
   setupGame();
 
