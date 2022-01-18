@@ -1,4 +1,4 @@
-// Erik Fredericks - 2021
+// Erik Fredericks - 2021-2022
 // Gameplay based on the classic Fishy flash game
 // Color palette: https://www.color-hex.com/color-palette/103536
 // Blobby: https://thecodingtrain.com/CodingChallenges/036-blobby.html
