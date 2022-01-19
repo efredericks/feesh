@@ -309,7 +309,7 @@ if (fr < fps_threshold) {
     }
   }
 
-  if (bouncy && mapeEnabled && fr < fps_bottom_threshold + 5) {
+  if (bouncy && mapeEnabled && fr < fps_bottom_threshold + 5 && ticks > 5) { // tick delay is to avoid it being set at the beginning of the run
     bouncy = false;
     // bouncyBox.attribute('checked') = false; --> can't seem to update the value in real time and unsure how to set an id to reference via DOM?
     debugLog.push(`${ticks}:FPS exceeded:Debounced:${fr}`)
