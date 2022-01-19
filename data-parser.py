@@ -79,32 +79,32 @@ print(nomapeAdapts)
 
 print("TIMES")
 sns.color_palette("colorblind")
-# pdt = pd.DataFrame([mapeTimes, nomapeTimes])
-# pdt = pdt.transpose()
-# pdt.columns = ['MAPE-K', 'Normal']
-# print(pdt.head())
-# b = sns.boxplot(data=pdt)#, x="Experiment", y="Execution Time")
-# b.set(ylabel="Execution Time")
-# b = b.get_figure()
-# b.savefig("time-plot.png")
+pdt = pd.DataFrame([mapeTimes, nomapeTimes])
+pdt = pdt.transpose()
+pdt.columns = ['MAPE-K', 'Normal']
+print(pdt.head())
+b = sns.boxplot(data=pdt)#, x="Experiment", y="Execution Time")
+b.set(ylabel="Execution Time")
+b = b.get_figure()
+b.savefig("time-plot.png")
 
 
-# g1 = pdt['MAPE-K']
-# g2 = pdt['Normal']
-# print(mannwhitneyu(g1,g2))
-
-print("")
-print("UTIL F")
-pdt2 = pd.DataFrame([mapeGoalF, nomapeGoalF])
-pdt2 = pdt2.transpose()
-pdt2.columns = ['MAPE-K', 'Normal']
-print(pdt2.head())
-c = sns.boxplot(data=pdt2)#, x="Experiment", y="Execution Time")
-c.set(ylabel="Averate Utility Value")
-c = c.get_figure()
-c.savefig("F-plot.png")
-
-
-g1 = pdt2['MAPE-K']
-g2 = pdt2['Normal']
+g1 = pdt['MAPE-K']
+g2 = pdt['Normal']
 print(mannwhitneyu(g1,g2))
+
+# print("")
+# print("UTIL F")
+# pdt2 = pd.DataFrame([mapeGoalF, nomapeGoalF])
+# pdt2 = pdt2.transpose()
+# pdt2.columns = ['MAPE-K', 'Normal']
+# print(pdt2.head())
+# c = sns.boxplot(data=pdt2)#, x="Experiment", y="Execution Time")
+# c.set(ylabel="Averate Utility Value")
+# c = c.get_figure()
+# c.savefig("F-plot.png")
+
+
+# g1 = pdt2['MAPE-K']
+# g2 = pdt2['Normal']
+# print(mannwhitneyu(g1,g2))
