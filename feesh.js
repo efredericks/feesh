@@ -459,6 +459,7 @@ function setupGame() {
 
   entities = [];
   debugLog = [];
+  utilLog = [];
   player = null;
   bg = color(60, 35, 92);
   pg = color(187, 28, 203);
